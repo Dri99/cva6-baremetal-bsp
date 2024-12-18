@@ -140,9 +140,11 @@ int _execve(const char *name, char *const argv[], char *const env[])
   return -1;
 }
 
+volatile uint64_t tohost,fromhost; 
 void _exit(int exit_status)
 {
   *(volatile int *)EXIT_REG = exit_status;
+  tohost = (exit_status < 1 ) | 1;
   asm volatile("wfi");
   /* _exit should not return */
   while (1) {};

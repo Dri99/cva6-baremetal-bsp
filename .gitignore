@@ -1,0 +1,7 @@
+*.D
+*.hex
+*.bin
+*.riscv
+*.mem
+*.o
+*.a

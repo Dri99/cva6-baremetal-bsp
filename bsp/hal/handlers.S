@@ -15,6 +15,7 @@
 */
 
 /* Exception codes */
+#define EXCEPTION_INS_ACCESS_FAULT 1
 #define EXCEPTION_ILLEGAL_INSN 2
 #define EXCEPTION_BREAKPOINT 3
 #define EXCEPTION_ECALL_M 11
@@ -22,7 +23,10 @@
 .section .text.handlers
 .global __no_irq_handler
 .global sw_irq_handler
+.global __timer_irq_handler
 .global verification_irq_handler
+
+//.global timer_irq   
 
 /* exception handling */
 __no_irq_handler:
@@ -30,27 +34,69 @@ __no_irq_handler:
 	jal ra, puts
 	j __no_irq_handler
 
+__timer_irq_handler:
+	//ebreak
+	//addi sp,sp,-128
+	//sd ra, 0  (sp)
+	//sd t0, 8  (sp)
+	//sd t1, 16 (sp)
+	//sd t2, 24 (sp)
+	//sd a0, 32 (sp)
+	//sd a1, 40 (sp)
+	//sd a2, 48 (sp)
+	//sd a3, 56 (sp)
+	//sd a4, 64 (sp)
+	//sd a5, 72 (sp)
+	//sd a6, 80 (sp)
+	//sd a7, 88 (sp)
+	//sd t3, 96 (sp)
+	//sd t4, 104(sp)
+	//sd t5, 112(sp)
+	//sd t6, 120(sp)
+	jal timer_irq
+	//Restore context
+	ld ra, 0  (sp)
+    ld t0, 8  (sp)
+    ld t1, 16 (sp)
+    ld t2, 24 (sp)
+    ld a0, 32 (sp)
+    ld a1, 40 (sp)
+    ld a2, 48 (sp)
+    ld a3, 56 (sp)
+    ld a4, 64 (sp)
+    ld a5, 72 (sp)
+    ld a6, 80 (sp)
+    ld a7, 88 (sp)
+    ld t3, 96 (sp)
+    ld t4, 104(sp)
+    ld t5, 112(sp)
+    ld t6, 120(sp)
+    addi sp,sp, 128
+    mret
+
 sw_irq_handler:
 	/* While we are still using puts in handlers, save all caller saved
 	   regs.  Eventually, some of these saves could be deferred.  */
-	addi sp,sp,-64
-	sw ra, 0(sp)
-	sw a0, 4(sp)
-	sw a1, 8(sp)
-	sw a2, 12(sp)
-	sw a3, 16(sp)
-	sw a4, 20(sp)
-	sw a5, 24(sp)
-	sw a6, 28(sp)
-	sw a7, 32(sp)
-	sw t0, 36(sp)
-	sw t1, 40(sp)
-	sw t2, 44(sp)
-	sw t3, 48(sp)
-	sw t4, 52(sp)
-	sw t5, 56(sp)
-	sw t6, 60(sp)
+	//addi sp,sp,-128
+	//sd ra, 0  (sp)
+	//sd t0, 8  (sp)
+	//sd t1, 16 (sp)
+	//sd t2, 24 (sp)
+	//sd a0, 32 (sp)
+	//sd a1, 40 (sp)
+	//sd a2, 48 (sp)
+	//sd a3, 56 (sp)
+	//sd a4, 64 (sp)
+	//sd a5, 72 (sp)
+	//sd a6, 80 (sp)
+	//sd a7, 88 (sp)
+	//sd t3, 96 (sp)
+	//sd t4, 104(sp)
+	//sd t5, 112(sp)
+	//sd t6, 120(sp)
 	csrr t0, mcause
+	li t1, EXCEPTION_INS_ACCESS_FAULT
+	beq t0, t1, handle_access_fault
 	li t1, EXCEPTION_ILLEGAL_INSN
 	beq t0, t1, handle_illegal_insn
 	li t1, EXCEPTION_ECALL_M
@@ -69,9 +115,17 @@ handle_ebreak:
 	jal ra, puts
 	j end_handler_incr_mepc
 
+handle_access_fault:
+	la a0, access_fault_msg
+	csrr a1, mepc
+	jal ra, printf
+	j end_handler_incr_mepc
+
 handle_illegal_insn:
 	la a0, illegal_insn_msg
-	jal ra, puts
+	//jal ra, puts
+	csrr a1, mepc
+	jal ra, printf
 	j end_handler_incr_mepc
 
 handle_unknown:
@@ -94,23 +148,23 @@ end_handler_incr_mepc2:
 	addi t0, t0, 2
 	csrw mepc, t0
 end_handler_ret:
-	lw ra, 0(sp)
-	lw a0, 4(sp)
-	lw a1, 8(sp)
-	lw a2, 12(sp)
-	lw a3, 16(sp)
-	lw a4, 20(sp)
-	lw a5, 24(sp)
-	lw a6, 28(sp)
-	lw a7, 32(sp)
-	lw t0, 36(sp)
-	lw t1, 40(sp)
-	lw t2, 44(sp)
-	lw t3, 48(sp)
-	lw t4, 52(sp)
-	lw t5, 56(sp)
-	lw t6, 60(sp)
-	addi sp,sp,64
+	ld ra, 0  (sp)
+    ld t0, 8  (sp)
+    ld t1, 16 (sp)
+    ld t2, 24 (sp)
+    ld a0, 32 (sp)
+    ld a1, 40 (sp)
+    ld a2, 48 (sp)
+    ld a3, 56 (sp)
+    ld a4, 64 (sp)
+    ld a5, 72 (sp)
+    ld a6, 80 (sp)
+    ld a7, 88 (sp)
+    ld t3, 96 (sp)
+    ld t4, 104(sp)
+    ld t5, 112(sp)
+    ld t6, 120(sp)
+    addi sp,sp, 128
 	mret
 /* this interrupt can be generated for verification purposes, random or when the
    PC is equal to a given value*/
@@ -118,8 +172,10 @@ verification_irq_handler:
 	mret
 
 .section .rodata
+access_fault_msg:
+	.string "instruction access fault @%x\n"
 illegal_insn_msg:
-	.string "illegal instruction exception handler entered\n"
+	.string "illegal instruction exception handler entered @%x\n"
 ecall_msg:
 	.string "ecall exception handler entered\n"
 ebreak_msg:

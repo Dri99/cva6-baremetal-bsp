@@ -53,7 +53,8 @@ bmarks = \
 	multiply \
 	dhrystone \
 	spmv \
-	pmp 
+	pmp \
+	soc_context_test
 
 #--------------------------------------------------------------------
 # Build rules
@@ -86,15 +87,15 @@ INCS += -I$(src_dir)/../bsp/config \
 	
 FLAGS_STR:="$(RISCV_CFLAGS)  $(RISCV_LDFLAGS) "
 
-CFLAGS ?=-DPREALLOCATE=1 -fvisibility=hidden -DSTDIO_THRU_UART -O3 -mcmodel=medany   -static  -Wall -pedantic 
+CFLAGS ?=-DPREALLOCATE=1 -fvisibility=hidden -DSTDIO_THRU_UART -O3 -mcmodel=medany  -g -static  -Wall -pedantic -march=rv64imac_zicsr -mabi=lp64
 
 RISCV_CFLAGS :=-DPERFORMANCE_RUN=1 \
 		-DITERATIONS=3 \
 		-DFLAGS_STR=\"$(FLAGS_STR)\" \
-		-DPREALLOCATE=1 -fvisibility=hidden -DSTDIO_THRU_UART -O3 -mcmodel=medany   -static  -Wall -pedantic 
+		-DPREALLOCATE=1 -fvisibility=hidden -DSTDIO_THRU_UART -O3 -mcmodel=medany  -g -static  -Wall -pedantic -march=rv64imac_zicsr -mabi=lp64
 
-RISCV_LDFLAGS=-L./ -lcva6 -static -nostartfiles -T $(src_dir)/../bsp/config/link.ld
-
+#RISCV_LDFLAGS=-L./ -lcva6 -static -nostartfiles -T $(src_dir)/../bsp/config/link.ld
+RISCV_LDFLAGS=-L./ -lcva6 -static -nostartfiles -mcmodel=medany -g -u tohost -T $(src_dir)/../bsp/config/link64.ld -march=rv64imac_zicsr -mabi=lp64
 
 
 incs  += -I$(src_dir)/../env -I$(src_dir)/common $(addprefix -I$(src_dir)/, $(bmarks))
@@ -143,6 +144,6 @@ all: $(bmarks)
 
 
 clean:
-	rm -rf $(OBJ_BSP) $(ALL_OBJ) libcva6.a *.riscv *.o *.D *.mem *.bin
+	rm -rf $(OBJ_BSP) $(ALL_OBJ) libcva6.a *.riscv *.o *.D *.mem *.bin *.hex
 
 

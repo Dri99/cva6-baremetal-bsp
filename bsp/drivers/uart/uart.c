@@ -52,7 +52,7 @@
 #define IIRF_DATA_TIMEOUT               0x0Cu
 
 
-uart_instance_t g_uart_0 = { .hw_reg = FPGA_UART_0_BASE };
+uart_instance_t g_uart_0 = { .hw_reg = (UART_TypeDef *)FPGA_UART_0_BASE };
 
 /*******************************************************************************
  * Global initialization for all modes
