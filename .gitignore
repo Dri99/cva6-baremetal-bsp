@@ -4,4 +4,4 @@
 *.riscv
 *.mem
 *.o
-*.a
+*.agit 

@@ -114,6 +114,7 @@ $(1): $(1).mem $(1).bin
 $(1).riscv: libcva6.a $$($(1)_OBJ_FILES)
 	# LINKING
 	$$(RISCV_GCC) $$(RISCV_CFLAGS) -o $$@ $$^ $$(RISCV_LDFLAGS)
+	cp $(1).riscv $(1).o
 endef
 
 $(foreach bmark,$(bmarks),$(eval $(call generate_rules,$(bmark))))

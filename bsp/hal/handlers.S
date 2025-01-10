@@ -28,6 +28,8 @@
 
 //.global timer_irq   
 
+# #define ASSERT_SAVED(reg,offset) ld reg,(8+offset)(sp) \
+# 								jal printf
 /* exception handling */
 __no_irq_handler:
 	la a0, no_exception_handler_msg
@@ -36,23 +38,33 @@ __no_irq_handler:
 
 __timer_irq_handler:
 	//ebreak
-	//addi sp,sp,-128
-	//sd ra, 0  (sp)
-	//sd t0, 8  (sp)
-	//sd t1, 16 (sp)
-	//sd t2, 24 (sp)
-	//sd a0, 32 (sp)
-	//sd a1, 40 (sp)
-	//sd a2, 48 (sp)
-	//sd a3, 56 (sp)
-	//sd a4, 64 (sp)
-	//sd a5, 72 (sp)
-	//sd a6, 80 (sp)
-	//sd a7, 88 (sp)
-	//sd t3, 96 (sp)
-	//sd t4, 104(sp)
-	//sd t5, 112(sp)
-	//sd t6, 120(sp)
+	# addi sp,sp,-128
+	# sd ra, 0  (sp)
+	# sd t0, 8  (sp)
+	# sd t1, 16 (sp)
+	# sd t2, 24 (sp)
+	# sd a0, 32 (sp)
+	# sd a1, 40 (sp)
+	# sd a2, 48 (sp)
+	# sd a3, 56 (sp)
+	# sd a4, 64 (sp)
+	# sd a5, 72 (sp)
+	# sd a6, 80 (sp)
+	# sd a7, 88 (sp)
+	# sd t3, 96 (sp)
+	# sd t4, 104(sp)
+	# sd t5, 112(sp)
+	# sd t6, 120(sp)
+	//Check saved values (automatic or not)
+	//csrr a1, 0x7c7
+	//la a0, print_shadow_status_msg
+	//jal printf
+	//Second time for fun
+	//csrr a1, 0x7c7
+	//la a0, print_shadow_status_msg
+	//jal printf
+	csrr a1, 0x7c6
+	mv a0, sp
 	jal timer_irq
 	//Restore context
 	ld ra, 0  (sp)
@@ -70,6 +82,8 @@ __timer_irq_handler:
     ld t3, 96 (sp)
     ld t4, 104(sp)
     ld t5, 112(sp)
+	li t6, (0x1 << 26)
+	csrs 0x7C7, t6
     ld t6, 120(sp)
     addi sp,sp, 128
     mret
@@ -77,23 +91,23 @@ __timer_irq_handler:
 sw_irq_handler:
 	/* While we are still using puts in handlers, save all caller saved
 	   regs.  Eventually, some of these saves could be deferred.  */
-	//addi sp,sp,-128
-	//sd ra, 0  (sp)
-	//sd t0, 8  (sp)
-	//sd t1, 16 (sp)
-	//sd t2, 24 (sp)
-	//sd a0, 32 (sp)
-	//sd a1, 40 (sp)
-	//sd a2, 48 (sp)
-	//sd a3, 56 (sp)
-	//sd a4, 64 (sp)
-	//sd a5, 72 (sp)
-	//sd a6, 80 (sp)
-	//sd a7, 88 (sp)
-	//sd t3, 96 (sp)
-	//sd t4, 104(sp)
-	//sd t5, 112(sp)
-	//sd t6, 120(sp)
+	# addi sp,sp,-128
+	# sd ra, 0  (sp)
+	# sd t0, 8  (sp)
+	# sd t1, 16 (sp)
+	# sd t2, 24 (sp)
+	# sd a0, 32 (sp)
+	# sd a1, 40 (sp)
+	# sd a2, 48 (sp)
+	# sd a3, 56 (sp)
+	# sd a4, 64 (sp)
+	# sd a5, 72 (sp)
+	# sd a6, 80 (sp)
+	# sd a7, 88 (sp)
+	# sd t3, 96 (sp)
+	# sd t4, 104(sp)
+	# sd t5, 112(sp)
+	# sd t6, 120(sp)
 	csrr t0, mcause
 	li t1, EXCEPTION_INS_ACCESS_FAULT
 	beq t0, t1, handle_access_fault
@@ -184,3 +198,5 @@ unknown_msg:
 	.string "unknown exception handler entered\n"
 no_exception_handler_msg:
 	.string "no exception handler installed\n"
+print_shadow_status_msg:
+	.string "Shadow status: %lx\n"

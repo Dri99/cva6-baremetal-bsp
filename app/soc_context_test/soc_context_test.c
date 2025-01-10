@@ -9,6 +9,10 @@
 #define CSR_CNT_STATUS 0x7C3
 #define CSR_CNT_DATA   0x7C4
 #define CSR_CNT_DATA_H 0x7C5
+#define CSR_LAST_SP    0x7C6
+#define CSR_SHADOW_STATUS    0x7C7
+#define CSR_SHADOW_REG 0x7C8
+#define CSR_LOAD_ESF   0x7C9
 
 #define my_read_csr(reg) read_csr(reg) 
 #define my_write_csr(reg,var) write_csr(reg,var)
@@ -25,8 +29,64 @@ typedef union{
 int end_loop = 0;
 
 //Overwrites weak definition
-void timer_irq(){
+void timer_irq(uint64_t* sp, uint64_t* last_sp){
+  printf("Check shadow status: %lx\n", my_read_csr(CSR_SHADOW_STATUS));
+  printf("Check save activations: %lx\n",read_csr(mhpmcounter6));
+  printf("Check save conclusions: %lx\n",read_csr(mhpmcounter7));
   printf("Timer handler Called\n");
+  //printf("ra = %lx\n", sp[ 0]);
+  //printf("t0 = %lx\n", sp[ 1]);
+  //printf("t1 = %lx\n", sp[ 2]);
+  //printf("t2 = %lx\n", sp[ 3]);
+  //printf("a0 = %lx\n", sp[ 4]);
+  //printf("a1 = %lx\n", sp[ 5]);
+  //printf("a2 = %lx\n", sp[ 6]);
+  //printf("a3 = %lx\n", sp[ 7]);
+  //printf("a4 = %lx\n", sp[ 8]);
+  //printf("a5 = %lx\n", sp[ 9]);
+  //printf("a6 = %lx\n", sp[10]);
+  //printf("a7 = %lx\n", sp[11]);
+  //printf("t3 = %lx\n", sp[12]);
+  //printf("t4 = %lx\n", sp[13]);
+  //printf("t5 = %lx\n", sp[14]);
+  //printf("t6 = %lx\n", sp[15]);
+  // my_write_csr(CSR_SHADOW_STATUS, 0x0000);
+  // printf("shadow ra = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
+  // my_write_csr(CSR_SHADOW_STATUS, 0x0100);
+  // printf("shadow t0 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
+  // my_write_csr(CSR_SHADOW_STATUS, 0x0200);
+  // printf("shadow t1 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
+  // my_write_csr(CSR_SHADOW_STATUS, 0x0300);
+  // printf("shadow t2 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
+  // my_write_csr(CSR_SHADOW_STATUS, 0x0400);
+  // printf("shadow a0 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
+  // my_write_csr(CSR_SHADOW_STATUS, 0x0500);
+  // printf("shadow a1 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
+  // my_write_csr(CSR_SHADOW_STATUS, 0x0600);
+  // printf("shadow a2 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
+  // my_write_csr(CSR_SHADOW_STATUS, 0x0700);
+  // printf("shadow a3 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
+  // my_write_csr(CSR_SHADOW_STATUS, 0x0800);
+  // printf("shadow a4 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
+  // my_write_csr(CSR_SHADOW_STATUS, 0x0900);
+  // printf("shadow a5 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
+  // my_write_csr(CSR_SHADOW_STATUS, 0x0a00);
+  // printf("shadow a6 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
+  // my_write_csr(CSR_SHADOW_STATUS, 0x0b00);
+  // printf("shadow a7 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
+  // my_write_csr(CSR_SHADOW_STATUS, 0x0c00);
+  // printf("shadow t3 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
+  // my_write_csr(CSR_SHADOW_STATUS, 0x0d00);
+  // printf("shadow t4 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
+  // my_write_csr(CSR_SHADOW_STATUS, 0x0e00);
+  // printf("shadow t5 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
+  // my_write_csr(CSR_SHADOW_STATUS, 0x0f00);
+  // printf("shadow t6 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
+  my_write_csr(CSR_LOAD_ESF, (uint64_t)sp);
+  
+  printf("Actual sp = %lx\n",(uint64_t) sp);
+  printf("Last sp = %lx\n", (uint64_t)last_sp);
+
   end_loop = 1;
 	__asm__ volatile (
 					"li a0,  0xaaaaaa\n"
@@ -55,7 +115,7 @@ void timer_irq(){
 				: "a0","a1","a2","a3","a4","a5","a6","a7");	
 	//Disable successive irqs
 	mtimecmp = 0xffffffffffffffff;
-	clear_csr(mip, MIP_MTIP);
+	//clear_csr(mip, MIP_MTIP);
 
 
 }
@@ -71,19 +131,31 @@ int main(void)
 	write_csr(mhpmevent6, 26);
 	write_csr(mhpmevent7, 27);
 	//set_csr(dcsr, (1u<<15));
-	printf("Check mstatus before: %x\n",read_csr(mstatus));
+	printf("Check mstatus before: %lx\n",read_csr(mstatus));
 	set_csr(mstatus, MSTATUS_MIE);
-	printf("Check mstatus: %x\n",read_csr(mstatus));
+	printf("Check mstatus: %lx\n",read_csr(mstatus));
 	//mip, mie, mstatus
   //Setup timecmp and interrupts
   //write_csr(mtvec, __isr_wrapper);
 
-	uint64_t now = mtime;
-	mtimecmp = now + CLOCK_PER_MSEC * 2;
+	// uint64_t start_rtc = mtime, start = read_csr(mcycle);
+	// for(volatile int i=0;i<1000000;i++);
+	// start_rtc = mtime - start_rtc;
+	// start = read_csr(mcycle) - start;
+	// printf("Mcycle passed: %lu, mtime passed: %lu\n", start, start_rtc);
+
+	printf("Last sp before int: %lx\n", my_read_csr(CSR_LAST_SP));
+	printf("Check shadow status: %lx\n", my_read_csr(CSR_SHADOW_STATUS));
 	
-	uint64_t old_csr = clear_csr(mip, MIP_MTIP);
+	mtimecmp = ~(0x0ULL);
+	while(mtimecmp != ~(0x0ULL));
+	//
+	//uint64_t old_csr = clear_csr(mip, MIP_MTIP);
 	set_csr(mie, MIP_MTIP);
 	
+	uint64_t now = mtime;
+	mtimecmp = now + CLOCK_PER_USEC * 50;
+
 	__asm__ goto ("li t0, 5\n"
 					"li t1,  6\n"
 					"li t2,  7\n"
