@@ -34,22 +34,22 @@ void timer_irq(uint64_t* sp, uint64_t* last_sp){
   printf("Check save activations: %lx\n",read_csr(mhpmcounter6));
   printf("Check save conclusions: %lx\n",read_csr(mhpmcounter7));
   printf("Timer handler Called\n");
-  //printf("ra = %lx\n", sp[ 0]);
-  //printf("t0 = %lx\n", sp[ 1]);
-  //printf("t1 = %lx\n", sp[ 2]);
-  //printf("t2 = %lx\n", sp[ 3]);
-  //printf("a0 = %lx\n", sp[ 4]);
-  //printf("a1 = %lx\n", sp[ 5]);
-  //printf("a2 = %lx\n", sp[ 6]);
-  //printf("a3 = %lx\n", sp[ 7]);
-  //printf("a4 = %lx\n", sp[ 8]);
-  //printf("a5 = %lx\n", sp[ 9]);
-  //printf("a6 = %lx\n", sp[10]);
-  //printf("a7 = %lx\n", sp[11]);
-  //printf("t3 = %lx\n", sp[12]);
-  //printf("t4 = %lx\n", sp[13]);
-  //printf("t5 = %lx\n", sp[14]);
-  //printf("t6 = %lx\n", sp[15]);
+  printf("ra = %lx\n", sp[ 0]);
+  printf("t0 = %lx\n", sp[ 1]);
+  printf("t1 = %lx\n", sp[ 2]);
+  printf("t2 = %lx\n", sp[ 3]);
+  printf("a0 = %lx\n", sp[ 4]);
+  printf("a1 = %lx\n", sp[ 5]);
+  printf("a2 = %lx\n", sp[ 6]);
+  printf("a3 = %lx\n", sp[ 7]);
+  printf("a4 = %lx\n", sp[ 8]);
+  printf("a5 = %lx\n", sp[ 9]);
+  printf("a6 = %lx\n", sp[10]);
+  printf("a7 = %lx\n", sp[11]);
+  printf("t3 = %lx\n", sp[12]);
+  printf("t4 = %lx\n", sp[13]);
+  printf("t5 = %lx\n", sp[14]);
+  printf("t6 = %lx\n", sp[15]);
   // my_write_csr(CSR_SHADOW_STATUS, 0x0000);
   // printf("shadow ra = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
   // my_write_csr(CSR_SHADOW_STATUS, 0x0100);
@@ -82,7 +82,7 @@ void timer_irq(uint64_t* sp, uint64_t* last_sp){
   // printf("shadow t5 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
   // my_write_csr(CSR_SHADOW_STATUS, 0x0f00);
   // printf("shadow t6 = %lx @mstatus=%lx\n", my_read_csr(CSR_SHADOW_REG), my_read_csr(CSR_SHADOW_STATUS));
-  my_write_csr(CSR_LOAD_ESF, (uint64_t)sp);
+  //my_write_csr(CSR_LOAD_ESF, (uint64_t)sp);
   
   printf("Actual sp = %lx\n",(uint64_t) sp);
   printf("Last sp = %lx\n", (uint64_t)last_sp);
@@ -119,7 +119,20 @@ void timer_irq(uint64_t* sp, uint64_t* last_sp){
 
 
 }
+/*
+This app, after the initial setup and some avoidable reading, checks that the 
+__timer_irq_handler is correctly called, together with context stacking and unstacking
 
+It does so by setting caller-saved registers to known values before waiting for the timer interrupt 
+to be called in a known section of code (the infinite loop). The __timer_irq_handler sets end_loop
+which allows advancing. Then, all previuosly set registers are checked against the expected value.
+
+Note that this test works because there is only one interrupt, raised in a point where the core is in
+a known state. In the general case interupts happen at any time.
+
+The section at the beginning of the __asm__ inline part hacks the stack to be across two pages, to test 
+the behavior of the shru (shadown register unit) and the cache.
+*/
 int main(void)
 {
   
@@ -156,7 +169,16 @@ int main(void)
 	uint64_t now = mtime;
 	mtimecmp = now + CLOCK_PER_USEC * 50;
 
-	__asm__ goto ("li t0, 5\n"
+	__asm__ goto (
+					"addi t0,sp,-64\n"
+					"srli t0,t0,12\n"
+					"slli t0,t0,12\n"
+					"addi t0,t0,64\n"
+					"sub  t1,sp,t0\n"
+					"mv sp,t0\n"
+					"addi sp,sp,-8\n"
+					"sd t1,(sp)\n"
+					"li t0, 5\n"
 					"li t1,  6\n"
 					"li t2,  7\n"
 					"li a0,  10\n"
@@ -230,6 +252,9 @@ int main(void)
 					"bne t4,  t6, %l[fail]\n"
 					"li t6,  30\n"
 					"bne t5,  t6, %l[fail]\n"
+					"ld t1,(sp)\n"
+					"addi sp,sp,8\n"
+					"add sp,sp,t1\n"
 					"j %l[pass]"
 				: 
 				: [end_loop] "r" (&end_loop)		

@@ -60,7 +60,7 @@ bmarks = \
 # Build rules
 #--------------------------------------------------------------------
 
-RISCV_PREFIX ?= riscv$(XLEN)-unknown-elf-
+RISCV_PREFIX ?= riscv$(XLEN)-none-elf-
 RISCV_GCC ?= $(RISCV_PREFIX)gcc
 RISCV_OBJCOPY ?= $(RISCV_PREFIX)objcopy
 RISCV_AR ?= $(RISCV_PREFIX)ar

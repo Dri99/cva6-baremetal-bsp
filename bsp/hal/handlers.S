@@ -63,29 +63,46 @@ __timer_irq_handler:
 	//csrr a1, 0x7c7
 	//la a0, print_shadow_status_msg
 	//jal printf
+	# addi t0,sp,-64
+	# srli t0,t0,12
+	# slli t0,t0,12
+	# addi t0,t0,64
+	# sub  t1,sp,t0
+	# mv sp,t0
+	# //////
+	# addi sp,sp,-8
+	# ld t1,(sp)
+
+	# //Other stuff
+	# sd t1,(sp)
+	# addi sp,sp,-8
+	# //////
+	# add sp,t1
+	
 	csrr a1, 0x7c6
 	mv a0, sp
-	jal timer_irq
-	//Restore context
-	ld ra, 0  (sp)
-    ld t0, 8  (sp)
-    ld t1, 16 (sp)
-    ld t2, 24 (sp)
-    ld a0, 32 (sp)
-    ld a1, 40 (sp)
-    ld a2, 48 (sp)
-    ld a3, 56 (sp)
-    ld a4, 64 (sp)
-    ld a5, 72 (sp)
-    ld a6, 80 (sp)
-    ld a7, 88 (sp)
-    ld t3, 96 (sp)
-    ld t4, 104(sp)
-    ld t5, 112(sp)
+	csrw 0x7C9, sp
 	li t6, (0x1 << 26)
 	csrs 0x7C7, t6
-    ld t6, 120(sp)
-    addi sp,sp, 128
+	jal timer_irq
+	//Restore context
+	# ld ra, 0  (sp)
+    # ld t0, 8  (sp)
+    # ld t1, 16 (sp)
+    # ld t2, 24 (sp)
+    # ld a0, 32 (sp)
+    # ld a1, 40 (sp)
+    # ld a2, 48 (sp)
+    # ld a3, 56 (sp)
+    # ld a4, 64 (sp)
+    # ld a5, 72 (sp)
+    # ld a6, 80 (sp)
+    # ld a7, 88 (sp)
+    # ld t3, 96 (sp)
+    # ld t4, 104(sp)
+    # ld t5, 112(sp)
+    # ld t6, 120(sp)
+    # addi sp,sp, 128
     mret
 
 sw_irq_handler:
