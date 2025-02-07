@@ -4,7 +4,7 @@
 #include "encoding.h"
 #include "clic.h"
 
-#define CSR_MCYCLE     (0xb00)
+//#define CSR_MCYCLE     (0xb00)
 
 #define CSR_CNT_STATUS 0x7C3
 #define CSR_CNT_DATA   0x7C4
@@ -14,6 +14,7 @@
 #define CSR_SHADOW_REG 0x7C8
 #define CSR_LOAD_ESF   0x7C9
 
+#define my_set_csr(reg,var) set_csr(reg,var) 
 #define my_read_csr(reg) read_csr(reg) 
 #define my_write_csr(reg,var) write_csr(reg,var)
 
@@ -135,7 +136,8 @@ the behavior of the shru (shadown register unit) and the cache.
 */
 int main(void)
 {
-  
+	//Sets bit 28 in CSR_SHADOW_STATUS = CSR_SHADOW_STATUS.en_reg_save
+	my_set_csr(CSR_SHADOW_STATUS, (0x1ULL<28));
 	printf("Test started\n");
 
 	write_csr(mhpmevent3, 23);
